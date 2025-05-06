@@ -1,1 +1,14 @@
+fonts/font_*.h
 fonts/font_*.c
+
+**.obj
+**.o
+**.d
+**.exe
+**.out
+**.a
+**.so
+**.pdb
+
+main
+main.exe

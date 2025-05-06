@@ -251,7 +251,7 @@ if __name__ == '__main__':
 
         prefix = ' ' * 4
 
-        f.write('const uint8_t font_8x9_columns_blob[] = {\n')
+        f.write('static const uint8_t font_8x9_columns_blob[] = {\n')
         for k in range(0x21, 0x7F):
             columns = font8x9[chr(k)].get_columns()
             index_map[k + 1] = index_map[k] + len(columns)
@@ -263,7 +263,7 @@ if __name__ == '__main__':
         f.write('};\n')
         f.write('\n')
 
-        f.write('const uint8_t font_8x9_index_map[] = {\n')
+        f.write('static const uint16_t font_8x9_index_map[] = {\n')
         for k in range(0x21, 0x7F):
             ks = chr(k)
             ks = "'" + (ks if ks not in ("'", "\\") else f'\\{ks}') + "'"
@@ -274,15 +274,15 @@ if __name__ == '__main__':
         f.write('};\n')
         f.write('\n')
 
-        f.write('int8_t font_8x9_get_columns(uint8_t c, uint8_t *buf) {\n')
-        f.write('    if (c < 0x21 || c > 0x7E)\n')
+        f.write('int16_t font_8x9_get_columns(uint8_t character, uint8_t *buf) {\n')
+        f.write('    if (character < 0x21 || character > 0x7E)\n')
         f.write('        return -1;\n')
-        f.write('    c -= 0x21;\n')
-        f.write('    int8_t len = font_8x9_index_map[c + 1] - font_8x9_index_map[c];\n')
-        f.write('    if (len > 0)\n')
-        f.write('        memcpy(buf, font_8x9_columns_blob + font_8x9_index_map[c], len);\n')
-        f.write('    else\n')
+        f.write('    character -= 0x21;\n')
+        f.write('    int16_t len = font_8x9_index_map[character + 1] - font_8x9_index_map[character];\n')
+        f.write('    if (len < 0)\n')
         f.write('        return -1;\n')
+        f.write('    for (int8_t i = 0; i < len; i++)\n')
+        f.write('        buf[i] = (font_8x9_columns_blob + font_8x9_index_map[character])[i];\n')
         f.write('    return len;\n')
         f.write('}\n')
         # f.write('\n')
@@ -314,6 +314,7 @@ if __name__ == '__main__':
         f.write('// https://github.com/tomwaitsfornoman/lawrie-nes_ecp5/blob/master/osd/font_bizcat8x16.mem\n')
         f.write('\n')
         f.write('#include <stdint.h>\n')
+        f.write('#include <string.h>\n')
         f.write('\n')
         f.write('#define BEGIN(x) {\n')
         f.write('#define END(x) }\n')
@@ -321,7 +322,7 @@ if __name__ == '__main__':
 
         prefix = ' ' * 4
 
-        f.write('const uint16_t font_16x8_columns[0x7E - 0x20][8] = {\n')
+        f.write('static const uint16_t font_16x8_columns[0x7E - 0x20][8] = {\n')
         for k in range(0x21, 0x7F):
             columns = font16x8[chr(k)].get_columns()
             index_map[k + 1] = index_map[k] + sum(map(len, columns))
@@ -333,15 +334,15 @@ if __name__ == '__main__':
         f.write('};\n')
         f.write('\n')
 
-        f.write('int8_t font_16x8_get_columns(uint8_t c, uint8_t *buf) {\n')
-        f.write('    if (c < 0x21 || c > 0x7E)\n')
+        f.write('int8_t font_16x8_get_columns(uint8_t character, uint16_t *buf) {\n')
+        f.write('    if (character < 0x21 || character > 0x7E)\n')
         f.write('        return -1;\n')
-        f.write('    c -= 0x21;\n')
+        f.write('    character -= 0x21;\n')
         f.write('    int8_t len = 8;\n')
-        f.write('    if (len > 0)\n')
-        f.write('        memcpy(buf, font_16x8_columns[c], len);\n')
-        f.write('    else\n')
+        f.write('    if (len < 0)\n')
         f.write('        return -1;\n')
+        f.write('    for (int8_t i = 0; i < len; i++)\n')
+        f.write('        buf[i] = font_16x8_columns[character][i];\n')
         f.write('    return len;\n')
         f.write('}\n')
         print(f'Generated font_16x8.c for {len(font16x8)} characters')

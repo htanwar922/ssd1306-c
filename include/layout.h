@@ -1,6 +1,9 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
+
+#include "config.h"
 
 typedef struct {
     uint8_t page;
@@ -13,13 +16,19 @@ typedef enum {
     ADDRESSING_MODE_PAGE = 2,
 } AddressingMode;
 
-typedef bool (*set_position_f)(AddressingMode mode, Point *start, Point *end);
-typedef bool (*print_f)(uint8_t *data, uint8_t len);
+typedef enum {
+    FONT_8x9 = 0,
+    FONT_16x8 = 1,
+} FontType;
 
-struct Layout;
+typedef void * LayoutPtr;
+typedef bool (*write_f)(const uint8_t *data, size_t len);
 
-Layout *layout_create(set_position_f set_position, print_f print);
-void layout_free(Layout *layout);
-int8_t layout_add_tile(Layout *layout, Point *start, Point *end);
-void layout_edit_tile(Layout *layout, Point *edit);
-bool layout_print(uint8_t tile, void *font, uint8_t *data, uint8_t len);
+LayoutPtr layout_create(write_f write);
+void layout_free(LayoutPtr layout);
+
+int8_t layout_add_tile(LayoutPtr layout, Point *start, Point *end);
+int8_t layout_edit_tile(LayoutPtr layout, uint8_t tile, Point *tile_point, uint8_t *data, uint8_t len);
+
+int8_t layout_print(LayoutPtr layout, uint8_t tile, uint8_t *text, uint8_t len, FontType font);
+int8_t layout_flush(LayoutPtr layout);
