@@ -10,7 +10,7 @@
 #include "udp.h"
 #endif
 
-bool i2c_init() {
+__weak bool i2c_init() {
     bool ret = false;
 #if USE_UDP
     ret = udp_init();
@@ -22,7 +22,7 @@ bool i2c_init() {
     return ret;
 }
 
-bool i2c_send(uint8_t bus, uint8_t payload_type, const uint8_t *data, size_t len) {
+__weak bool i2c_send(uint8_t bus, uint8_t payload_type, const uint8_t *data, size_t len) {
     // Send data over I2C
     // This is a placeholder for actual I2C send code
     if (len > 32) {
@@ -55,7 +55,7 @@ bool i2c_send(uint8_t bus, uint8_t payload_type, const uint8_t *data, size_t len
 #endif
 }
 
-bool i2c_close() {
+__weak bool i2c_close() {
     bool ret = false;
 #if USE_UDP
     ret= udp_close();
