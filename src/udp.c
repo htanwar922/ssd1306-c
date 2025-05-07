@@ -8,6 +8,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "config.h"
+
+#if USE_UDP
+
 #include "udp.h"
 #include "layout.h"
 
@@ -89,3 +93,5 @@ bool udp_close() {
 #endif
     return true;
 }
+
+#endif
