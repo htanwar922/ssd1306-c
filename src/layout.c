@@ -7,6 +7,7 @@
 #include <stdio.h>
 
 #include "layout.h"
+#include "ssd1306.h"
 
 #define N_ROWS (N_PAGES * 8)
 
@@ -14,16 +15,6 @@
 
 extern int8_t font_8x9_get_columns(uint8_t c, uint8_t *buf);
 extern int8_t font_16x8_get_columns(uint8_t c, uint16_t *buf);
-
-#ifdef USE_UDP
-#include "udp.h"
-#define lt_set_position lt_set_position_udp
-#define lt_flush lt_flush_udp
-#else
-#include "ssd1306.h"
-#define lt_set_position lt_set_position_ssd1306
-#define lt_flush lt_flush_ssd1306
-#endif
 
 typedef struct {
     Point start;
@@ -294,63 +285,7 @@ int8_t layout_flush(LayoutPtr layout_) {
     return 0;
 }
 
-#ifdef USE_UDP
-
-#include <string.h>
-
-static bool lt_set_position_udp(Layout *layout, AddressingMode mode, Point *start, Point *end) {
-    printf("Setting position: mode=%d, start=(%d, %d), end=(%d, %d)\n",
-           mode, start->page, start->column, end->page, end->column);
-
-    char message[16] = {0};
-
-    if (mode == ADDRESSING_MODE_HORIZONTAL) {
-        snprintf(message, sizeof(message), "mode horizontal");
-    } else if (mode == ADDRESSING_MODE_VERTICAL) {
-        snprintf(message, sizeof(message), "mode vertical");
-    } else if (mode == ADDRESSING_MODE_PAGE) {
-        snprintf(message, sizeof(message), "mode page");
-    } else {
-        perror("Invalid addressing mode\n");
-        return false;
-    }
-    if (!layout->write((uint8_t *)message, strlen(message))) {
-        perror("Failed to send message");
-        return false;
-    }
-
-    snprintf(message, sizeof(message), "page %d", start->page);
-    if (!layout->write((uint8_t *)message, strlen(message))) {
-        perror("Failed to send message");
-        return false;
-    }
-
-    snprintf(message, sizeof(message), "col %d", start->column);
-    if (!layout->write((uint8_t *)message, strlen(message))) {
-        perror("Failed to send message");
-        return false;
-    }
-
-    return true;
-}
-
-static bool lt_flush_udp(Layout *layout, uint8_t *data, uint8_t len) {
-    char message[1024] = {0};
-    snprintf(message, sizeof(message), "write ");
-    for (int i = 0; i < len; i++) {
-        snprintf(message + strlen(message), sizeof(message) - strlen(message), "%02x ", data[i]);
-    }
-    message[strlen(message) - 1] = '\0'; // Remove trailing space
-    if (!layout->write((uint8_t *)message, strlen(message))) {
-        perror("Failed to send message");
-        return false;
-    }
-    return true;
-}
-
-#else
-
-static bool lt_set_position_ssd1306(Layout *layout, AddressingMode mode, Point *start, Point *end) {
+static bool lt_set_position(Layout *layout, AddressingMode mode, Point *start, Point *end) {
     switch (mode) {
         case ADDRESSING_MODE_HORIZONTAL:
             if (!ssd1306_set_memory_addressing_mode(SSD1306_OPTION_ADDRESSING_MODE_HORIZONTAL)) {
@@ -405,12 +340,10 @@ static bool lt_set_position_ssd1306(Layout *layout, AddressingMode mode, Point *
     return true;
 }
 
-static bool lt_flush_ssd1306(Layout *layout, uint8_t *data, uint8_t len) {
+static bool lt_flush(Layout *layout, uint8_t *data, uint8_t len) {
     if (!layout->write(data, len)) {
         perror("Failed to send message");
         return false;
     }
     return true;
 }
-
-#endif

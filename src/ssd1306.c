@@ -44,29 +44,11 @@ typedef struct {
 typedef bool (*write_f)(uint8_t *data, size_t len);
 
 bool ssd1306_write(uint8_t *cmd, size_t len) {
-#ifdef USE_I2C
     return i2c_send(SSD1306_I2C_ADDRESS_WRITE, 0x00, cmd, len);
-#else
-    printf("[SSD1306] Sending command: ");
-    for (size_t i = 0; i < len; i++) {
-        printf("%02X ", cmd[i]);
-    }
-    printf("\n");
-    return true;
-#endif
 }
 
 bool ssd1306_send_data(uint8_t *data, size_t len) {
-#ifdef USE_I2C
     return i2c_send(SSD1306_I2C_ADDRESS_WRITE, 0x40, data, len);
-#else
-    printf("[SSD1306] Sending data: ");
-    for (size_t i = 0; i < len; i++) {
-        printf("%02X ", data[i]);
-    }
-    printf("\n");
-    return true;
-#endif
 }
 
 bool ssd1306_send_simple_command(uint8_t command) {

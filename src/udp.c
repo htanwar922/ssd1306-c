@@ -69,9 +69,9 @@ bool udp_init() {
 }
 
 bool udp_send(const uint8_t *data, size_t len) {
-    printf("[UDP] Sending data: ");
+    printf("[UDP] Sending %s: ", data[1] == 0x00 ? "command" : "data");
     for (size_t i = 0; i < len; i++) {
-        printf("%c", data[i]);
+        printf("%02X ", data[i]);
     }
     printf("\n");
     if (sendto(sockfd, data, len, 0,

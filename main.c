@@ -6,12 +6,7 @@
 
 #include "config.h"
 #include "layout.h"
-
-#ifdef USE_UDP
-#include "udp.h"
-#else
 #include "i2c.h"
-#endif
 
 #include "ssd1306.h"
 
@@ -37,15 +32,9 @@ bool ssd1306_init() {
 
 int main() {
     // Initialize the display
-    ssd1306_init();
-
-#ifdef USE_UDP
-    udp_init();
-    LayoutPtr layout = layout_create(udp_send);
-#else
     i2c_init();
+    ssd1306_init();
     LayoutPtr layout = layout_create(ssd1306_send_data);
-#endif
 
     int8_t tile;
 
@@ -83,11 +72,7 @@ int main() {
     layout_free(layout);
     printf("Layout freed\n");
 
-#ifdef USE_UDP
-    udp_close();
-#else
     i2c_close();
-#endif
     return 0;
 }
 

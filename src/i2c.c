@@ -4,10 +4,22 @@
 
 #include "i2c.h"
 
+#include "config.h"
+
+#if USE_UDP
+#include "udp.h"
+#endif
+
 bool i2c_init() {
+    bool ret = false;
+#if USE_UDP
+    ret = udp_init();
+#else
     // Initialize I2C communication
     // This is a placeholder for actual I2C initialization code
-    return true;
+    ret = true;
+#endif
+    return ret;
 }
 
 bool i2c_send(uint8_t bus, uint8_t payload_type, const uint8_t *data, size_t len) {
@@ -23,6 +35,15 @@ bool i2c_send(uint8_t bus, uint8_t payload_type, const uint8_t *data, size_t len
         }
         return true;
     }
+#if USE_UDP
+    uint8_t buffer[1024];
+    buffer[0] = bus;
+    buffer[1] = payload_type;
+    for (size_t i = 0; i < len; i++) {
+        buffer[i + 2] = data[i];
+    }
+    return udp_send(buffer, len + 2);
+#else
     printf("[I2C] Sending %s: ", payload_type == 0x00 ? "command" : "data");
     printf("%02X ", bus);
     printf("%02X ", payload_type);
@@ -31,10 +52,17 @@ bool i2c_send(uint8_t bus, uint8_t payload_type, const uint8_t *data, size_t len
     }
     printf("\n");
     return true;
+#endif
 }
 
 bool i2c_close() {
+    bool ret = false;
+#if USE_UDP
+    ret= udp_close();
+#else
     // Close I2C communication
     // This is a placeholder for actual I2C close code
-    return true;
+    ret = true;
+#endif
+    return ret;
 }
