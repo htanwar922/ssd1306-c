@@ -30,6 +30,10 @@ void layout_free(LayoutPtr layout);
 int8_t layout_add_tile(LayoutPtr layout, Point *start, Point *end);
 int8_t layout_edit_tile(LayoutPtr layout, uint8_t tile, Point *tile_point, uint8_t *data, uint8_t len);
 
+uint8_t layout_get_num_tiles(LayoutPtr layout_);
+uint8_t layout_get_tile_width(LayoutPtr layout_, uint8_t tile);
+uint8_t layout_get_tile_height(LayoutPtr layout_, uint8_t tile);
+
 int8_t layout_print(LayoutPtr layout, uint8_t tile, uint8_t *text, uint8_t len, FontType font);
 int8_t layout_flush(LayoutPtr layout);
 int8_t layout_clear(LayoutPtr layout_, uint8_t fill);
