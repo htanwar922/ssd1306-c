@@ -38,6 +38,7 @@ typedef enum {
     LAYOUT_ERR_INVALID_POINT = -5,
     LAYOUT_ERR_INVALID_DATA = -6,
     LAYOUT_ERR_FLUSH = -7,
+    LAYOUT_ERR_OTHER = -8,
 } LayoutError;
 
 static bool lt_set_position(Layout *layout, AddressingMode mode, Point *start, Point *end);
@@ -139,7 +140,7 @@ int8_t layout_edit_tile(LayoutPtr layout_, uint8_t tile, Point *tile_point, uint
     if (tile >= layout->num_tiles) {
         errno = EINVAL;
         perror("Invalid tile index");
-        return -2; // Invalid tile index
+        return LAYOUT_ERR_INVALID_TILE;
     }
     Tile *t = &layout->tiles[tile];
     Point point = *tile_point;
@@ -149,18 +150,18 @@ int8_t layout_edit_tile(LayoutPtr layout_, uint8_t tile, Point *tile_point, uint
             point.column < t->start.column || point.column > t->end.column) {
         errno = EINVAL;
         perror("Invalid tile point");
-        return -3; // Invalid tile point
+        return LAYOUT_ERR_INVALID_POINT;
     }
     if (point.column + len > t->end.column + 1) {
         errno = EMSGSIZE;
         perror("Data length exceeds tile bounds");
-        return -4; // Data length exceeds tile bounds
+        return LAYOUT_ERR_INVALID_DATA;
     }
     for (int i = 0; i < len; i++) {
         layout->data[point.page][point.column + i] = data[i];
     }
     tile_setdirty(t, true);
-    return 0;
+    return LAYOUT_OK;
 }
 
 int8_t layout_print(LayoutPtr layout_, uint8_t tile, uint8_t *text, uint8_t len, FontType font) {
@@ -168,12 +169,12 @@ int8_t layout_print(LayoutPtr layout_, uint8_t tile, uint8_t *text, uint8_t len,
     if (layout == NULL) {
         errno = EINVAL;
         perror("Layout is NULL");
-        return -1; // Invalid layout
+        return LAYOUT_ERR_INVALID;
     }
     if (tile >= layout->num_tiles) {
         errno = EINVAL;
         perror("Invalid tile index");
-        return -2; // Invalid tile index
+        return LAYOUT_ERR_INVALID_TILE;
     }
     Tile *t = &layout->tiles[tile];
     uint8_t width = tile_get_width(t);
@@ -188,13 +189,13 @@ int8_t layout_print(LayoutPtr layout_, uint8_t tile, uint8_t *text, uint8_t len,
             if (len < 0) {
                 errno = EINVAL;
                 perror("Invalid character");
-                return -3; // Invalid character
+                return LAYOUT_ERR_INVALID_DATA;
             }
             for (int j = 0; j < len; j++) {
                 if (page >= height) {
                     errno = ENOSPC;
                     perror("No space left in tile");
-                    return -4; // No space left in tile
+                    return LAYOUT_ERR_FULL;
                 }
                 layout->data[t->start.page + page][t->start.column + column] = columns[j];
                 column++;
@@ -219,13 +220,13 @@ int8_t layout_print(LayoutPtr layout_, uint8_t tile, uint8_t *text, uint8_t len,
             if (len < 0) {
                 errno = EINVAL;
                 perror("Invalid character");
-                return -3; // Invalid character
+                return LAYOUT_ERR_INVALID_DATA;
             }
             for (int j = 0; j < len; j++) {
                 if (page >= height) {
                     errno = ENOSPC;
                     perror("No space left in tile");
-                    return -4; // No space left in tile
+                    return LAYOUT_ERR_FULL;
                 }
                 layout->data[t->start.page + page][t->start.column + column] = columns[j] & 0xFF;
                 layout->data[t->start.page + page + 1][t->start.column + column] = (columns[j] >> 8) & 0xFF;
@@ -246,11 +247,11 @@ int8_t layout_print(LayoutPtr layout_, uint8_t tile, uint8_t *text, uint8_t len,
     } else {
         errno = EINVAL;
         perror("Invalid font type");
-        return -5; // Invalid font type
+        return LAYOUT_ERR_OTHER;
     }
 
     tile_setdirty(t, true);
-    return 0;
+    return LAYOUT_OK;
 }
 
 int8_t layout_flush(LayoutPtr layout_) {
@@ -258,7 +259,7 @@ int8_t layout_flush(LayoutPtr layout_) {
     if (layout == NULL) {
         errno = EINVAL;
         perror("Layout is NULL");
-        return -1; // Invalid layout
+        return LAYOUT_ERR_INVALID;
     }
     for (int i = 0; i < layout->num_tiles; i++) {
         Tile *tile = &layout->tiles[i];
@@ -270,19 +271,38 @@ int8_t layout_flush(LayoutPtr layout_) {
             if (!lt_set_position(layout, ADDRESSING_MODE_HORIZONTAL, &start, &end)) {
                 errno = EIO;
                 perror("Failed to set position");
-                return -2; // Failed to set position
+                return LAYOUT_ERR_FLUSH;
             }
             for (int j = 0; j < height; j++) {
                 if (!lt_flush(layout, layout->data[start.page + j] + start.column, width)) {
                     errno = EIO;
                     perror("Failed to print data");
-                    return -3; // Failed to print data
+                    return LAYOUT_ERR_FLUSH;
                 }
             }
             tile_setdirty(tile, false);
         }
     }
-    return 0;
+    return LAYOUT_OK;
+}
+
+int8_t layout_clear(LayoutPtr layout_, uint8_t fill) {
+    Layout *layout = (Layout *)layout_;
+    if (layout == NULL) {
+        errno = EINVAL;
+        perror("Layout is NULL");
+        return LAYOUT_ERR_INVALID;
+    }
+    for (int j = 0; j < N_PAGES; j++) {
+        for (int k = 0; k < N_COLUMNS; k++) {
+            layout->data[j][k] = fill;
+        }
+    }
+    for (int i = 0; i < layout->num_tiles; i++) {
+        Tile *tile = &layout->tiles[i];
+        tile_setdirty(tile, true);
+    }
+    return LAYOUT_OK;
 }
 
 static bool lt_set_position(Layout *layout, AddressingMode mode, Point *start, Point *end) {

@@ -32,3 +32,4 @@ int8_t layout_edit_tile(LayoutPtr layout, uint8_t tile, Point *tile_point, uint8
 
 int8_t layout_print(LayoutPtr layout, uint8_t tile, uint8_t *text, uint8_t len, FontType font);
 int8_t layout_flush(LayoutPtr layout);
+int8_t layout_clear(LayoutPtr layout_, uint8_t fill);
