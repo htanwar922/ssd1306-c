@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "config.h"
+#include "ssd1306-config.h"
 
 #if USE_UDP
 

@@ -1,5 +1,10 @@
 #pragma once
 
+#include <stdint.h>
+#include <stdbool.h>
+
+#include "ssd1306-config.h"
+
 // # SSD1306_I2C_ADDRESS = 0x3C    # 011'110+SA0+RW - 0x3C or 0x3D
 // OPTION_I2C_ADDRESS_WRITE = 0x0
 // OPTION_I2C_ADDRESS_READ = 0x1
@@ -27,7 +32,7 @@
 #define SSD1306_OPTION_COM_SCAN_DIR_NORMAL          0x0
 #define SSD1306_OPTION_COM_SCAN_DIR_REVERSE         0x8
 
-bool ssd1306_send_data(uint8_t *data, size_t len);
+bool ssd1306_send_data(const uint8_t *data, size_t len);
 
 // # Fundamental commands
 bool ssd1306_set_contrast(uint8_t contrast);

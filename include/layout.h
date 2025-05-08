@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "config.h"
+#include "ssd1306-config.h"
 
 typedef struct {
     uint8_t page;

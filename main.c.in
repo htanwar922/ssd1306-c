@@ -4,13 +4,13 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "config.h"
+#include "ssd1306-config.h"
 #include "layout.h"
 #include "i2c.h"
 
 #include "ssd1306.h"
 
-bool ssd1306_init() {
+static bool ssd1306_init() {
     // Initialize the display
     ssd1306_set_display(SSD1306_OPTION_DISPLAY_OFF);
     ssd1306_set_display_clock_div_ratio(0x80);
@@ -30,7 +30,7 @@ bool ssd1306_init() {
     return true;
 }
 
-int main() {
+static int main() {
     // Initialize the display
     i2c_init();
     ssd1306_init();

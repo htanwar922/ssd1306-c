@@ -6,7 +6,6 @@ LDFLAGS=/nologo
 TARGET=main.exe
 
 INCLUDE_DIR=include
-
 SRCS=main.c \
 	fonts/font_8x9.c \
 	fonts/font_16x8.c \
@@ -18,11 +17,13 @@ SRCS=main.c \
 OBJS=$(SRCS:.c=.obj)
 
 CFLAGS=$(CFLAGS) /I$(INCLUDE_DIR)
-# LDFLAGS=$(LDFLAGS) hidapi.lib
 
 all: $(TARGET)
 
-$(TARGET): $(OBJS)
+pre:
+	@copy main.c.in main.c
+
+$(TARGET): pre $(OBJS)
 	@echo "Linking..."
 	@$(CC) $(LDFLAGS) /Fe$@ $(OBJS)
 	@echo "Build complete: $@"

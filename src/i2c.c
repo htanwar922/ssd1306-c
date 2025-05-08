@@ -4,7 +4,7 @@
 
 #include "i2c.h"
 
-#include "config.h"
+#include "ssd1306-config.h"
 
 #if USE_UDP
 #include "udp.h"
