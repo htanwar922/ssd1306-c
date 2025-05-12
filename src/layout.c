@@ -227,13 +227,22 @@ int8_t layout_print(LayoutPtr layout_, uint8_t tile, uint8_t *text, uint8_t len,
         uint8_t column = 0;
         uint8_t columns[10] = {0};
         for (int i = 0; i < len; i++) {
-            int8_t len = font_8x9_get_columns(text[i], columns);
-            if (len < 0) {
+            int8_t clen = 0;
+            if (text[i] == ' ') {
+                clen = 4;
+                for (int j = 0; j < clen; j++) {
+                    columns[j] = 0;
+                }
+            }
+            else {
+                clen = font_8x9_get_columns(text[i], columns);
+            }
+            if (clen < 0) {
                 errno = EINVAL;
                 perror("Invalid character");
                 return LAYOUT_ERR_INVALID_DATA;
             }
-            for (int j = 0; j < len; j++) {
+            for (int j = 0; j < clen; j++) {
                 if (page >= height) {
                     errno = ENOSPC;
                     perror("No space left in tile");
@@ -258,13 +267,22 @@ int8_t layout_print(LayoutPtr layout_, uint8_t tile, uint8_t *text, uint8_t len,
         uint8_t column = 0;
         uint16_t columns[8] = {0};
         for (int i = 0; i < len; i++) {
-            int8_t len = font_16x8_get_columns(text[i], columns);
-            if (len < 0) {
+            int8_t clen = 0;
+            if (text[i] == ' ') {
+                clen = 8;
+                for (int j = 0; j < clen; j++) {
+                    columns[j] = 0;
+                }
+            }
+            else {
+                clen = font_16x8_get_columns(text[i], columns);
+            }
+            if (clen < 0) {
                 errno = EINVAL;
                 perror("Invalid character");
                 return LAYOUT_ERR_INVALID_DATA;
             }
-            for (int j = 0; j < len; j++) {
+            for (int j = 0; j < clen; j++) {
                 if (page >= height) {
                     errno = ENOSPC;
                     perror("No space left in tile");
