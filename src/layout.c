@@ -93,9 +93,9 @@ LayoutPtr layout_create(write_f write) {
     return layout;
 }
 
-void layout_free(LayoutPtr layout) {
-    if (layout != NULL) {
-        free((Layout *)layout);
+void layout_free(LayoutPtr layout_) {
+    if (layout_ != NULL) {
+        free((Layout *)layout_);
     }
 }
 
@@ -172,6 +172,30 @@ uint8_t layout_get_num_tiles(LayoutPtr layout_) {
         return 0;
     }
     return layout->num_tiles;
+}
+
+int8_t layout_clear_tile(LayoutPtr layout_, uint8_t tile, uint8_t fill) {
+    Layout *layout = (Layout *)layout_;
+    if (layout == NULL) {
+        errno = EINVAL;
+        perror("Layout is NULL");
+        return LAYOUT_ERR_INVALID;
+    }
+    if (tile >= layout->num_tiles) {
+        errno = EINVAL;
+        perror("Invalid tile index");
+        return LAYOUT_ERR_INVALID_TILE;
+    }
+    Tile *t = &layout->tiles[tile];
+    uint8_t width = tile_get_width(t);
+    uint8_t height = tile_get_height(t);
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            layout->data[t->start.page + i][t->start.column + j] = fill;
+        }
+    }
+    tile_setdirty(t, true);
+    return LAYOUT_OK;
 }
 
 uint8_t layout_get_tile_width(LayoutPtr layout_, uint8_t tile) {
